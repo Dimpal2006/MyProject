@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mantra Chanting App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .app-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .mantra-display {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .mantra-display.active {
+            transform: scale(1.05);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .speed-control input {
+            width: 100px;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .speed-control input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+        }
+
+        .counter {
+            color: white;
+            font-size: 1.5em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .mantra-selector {
+            margin: 20px 0;
+        }
+
+        select {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .floating-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+
+        @media (max-width: 600px) {
+            .app-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .mantra-display {
+                font-size: 1.4em;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+    
+    <div class="app-container">
+        <h1>🕉️ Mantra Chanting</h1>
+        
+        <div class="mantra-selector">
+            <select id="mantraSelect">
+                <option value="om">ॐ (Om)</option>
+                <option value="gayatri">ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं भर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्</option>
+                <option value="mahamrityunjaya">ॐ त्र्यंबकं यजामहे सुगन्धिं पुष्टिवर्धनम् उर्वारुकमिव बन्धनान् मृत्योर्मुक्षीय मामृतात्</option>
+                <option value="shanti">ॐ शान्तिः शान्तिः शान्तिः</option>
+                <option value="ram">ॐ राम रामाय नमः</option>
+                <option value="krishna">ॐ कृष्णाय नमः</option>
+            </select>
+        </div>
+
+        <div class="mantra-display" id="mantraDisplay">ॐ</div>
+        
+        <div class="counter" id="counter">Rounds: 0</div>
+        
+        <div class="controls">
+            <button id="playBtn">▶️ Play</button>
+            <button id="pauseBtn" disabled>⏸️ Pause</button>
+            <button id="stopBtn">⏹️ Stop</button>
+        </div>
+        
+        <div class="speed-control">
+            <label>Speed:</label>
+            <input type="range" id="speedSlider" min="0.5" max="3" step="0.1" value="1">
+            <span id="speedValue">1x</span>
+        </div>
+    </div>
+
+    <script>
+        class MantraChanter {
+            constructor() {
+                this.mantras = {
+                    om: 'ॐ',
+                    gayatri: 'ॐ भूर्भुवः स्वः तत्सवितुर्वरेण्यं भर्गो देवस्य धीमहि धियो यो नः प्रचोदयात्',
+                    mahamrityunjaya: 'ॐ त्र्यंबकं यजामहे सुगन्धिं पुष्टिवर्धनम् उर्वारुकमिव बन्धनान् मृत्योर्मुक्षीय मामृतात्',
+                    shanti: 'ॐ शान्तिः शान्तिः शान्तिः',
+                    ram: 'ॐ राम रामाय नमः',
+                    krishna: 'ॐ कृष्णाय नमः'
+                };
+                
+                this.isPlaying = false;
+                this.currentRound = 0;
+                this.speed = 1;
+                this.audioContext = null;
+                this.oscillator = null;
+                
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.createParticles();
+                this.updateDisplay();
+            }
+            
+            bindEvents() {
+                const playBtn = document.getElementById('playBtn');
+                const pauseBtn = document.getElementById('pauseBtn');
+                const stopBtn = document.getElementById('stopBtn');
+                const mantraSelect = document.getElementById('mantraSelect');
+                const speedSlider = document.getElementById('speedSlider');
+                const speedValue = document.getElementById('speedValue');
+                const mantraDisplay = document.getElementById('mantraDisplay');
+                
+                playBtn.addEventListener('click', () => this.play());
+                pauseBtn.addEventListener('click', () => this.pause());
+                stopBtn.addEventListener('click', () => this.stop());
+                mantraSelect.addEventListener('change', () => this.updateDisplay());
+                speedSlider.addEventListener('input', (e) => {
+                    this.speed = parseFloat(e.target.value);
+                    speedValue.textContent = this.speed + 'x';
+                });
+                mantraDisplay.addEventListener('click', () => {
+                    if (!this.isPlaying) this.play();
+                });
+            }
+            
+            async play() {
+                if (this.isPlaying) return;
+                
+                this.isPlaying = true;
+                document.getElementById('playBtn').disabled = true;
+                document.getElementById('pauseBtn').disabled = false;
+                
+                // Initialize audio context
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    await this.audioContext.resume();
+                }
+                
+                this.chantMantra();
+            }
+            
+            pause() {
+                this.isPlaying = false;
+                document.getElementById('playBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                
+                if (this.oscillator) {
+                    this.oscillator.stop();
+                }
+            }
+            
+            stop() {
+                this.pause();
+                this.currentRound = 0;
+                document.getElementById('counter').textContent = 'Rounds: 0';
+                document.getElementById('mantraDisplay').classList.remove('active');
+            }
+            
+            async chantMantra() {
+                const mantraDisplay = document.getElementById('mantraDisplay');
+                const mantraText = document.getElementById('mantraSelect').value;
+                const fullMantra = this.mantras[mantraText];
+                
+                mantraDisplay.classList.add('active');
+                
+                // Create soothing tone
+                this.createTone(261.63); // Middle C
+                
+                // Chant each character/word
+                const words = fullMantra.split(' ');
+                for (let i = 0; i < words.length && this.isPlaying; i++) {
+                    mantraDisplay.textContent = words.slice(0, i + 1).join(' ');
+                    
+                    // Visual ripple effect
+                    this.createRipple();
+                    
+                    await this.sleep(800 / this.speed);
+                }
+                
+                // Complete round
+                if (this.isPlaying) {
+                    this.currentRound++;
+                    document.getElementById('counter').textContent = `Rounds: ${this.currentRound}`;
+                    
+                    // Brief pause between rounds
+                    await this.sleep(1000 / this.speed);
+                    
+                    // Continue chanting
+                    this.chantMantra();
+                }
+            }
+            
+            createTone(frequency) {
+                if (this.oscillator) {
+                    this.oscillator.stop();
+                }
+                
+                this.oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                this.oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                this.oscillator.frequency.value = frequency;
+                this.oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 1.5);
+                
+                this.oscillator.start(this.audioContext.currentTime);
+                this.oscillator.stop(this.audioContext.currentTime + 1.5);
+            }
+            
+            createRipple() {
+                const ripple = document.createElement('div');
+                ripple.className = 'particle';
+                ripple.style.left = Math.random() * 100 + '%';
+                ripple.style.top = Math.random() * 100 + '%';
+                ripple.style.width = ripple.style.height = Math.random() * 20 + 10 + 'px';
+                ripple.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                
+                document.getElementById('particles').appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 6000);
+            }
+            
+            createParticles() {
+                setInterval(() => {
+                    if (Math.random() > 0.7) {
+                        this.createRipple();
+                    }
+                }, 300);
+            }
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            updateDisplay() {
+                const selected = document.getElementById('mantraSelect').value;
+                document.getElementById('mantraDisplay').textContent = this.mantras[selected];
+            }
+        }
+        
+        // Initialize app when page loads
+        window.addEventListener('load', () => {
+            new MantraChanter();
+        });
+        
+        // Prevent audio context suspension on mobile
+        document.addEventListener('click', () => {
+            if (!window.audioContext) return;
+            window.audioContext.resume();
+        }, { once: true });
+    </script>
+</body>
+</html>
